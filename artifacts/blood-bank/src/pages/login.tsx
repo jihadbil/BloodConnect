@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, Link } from "wouter";
+import { Link } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [, setLocation] = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
   
@@ -26,18 +25,11 @@ export default function Login() {
           if (res.isSuccess && res.data?.token && res.data?.user) {
             login(res.data.token, res.data.user);
             const roles = res.data.user.roles || [];
-            toast({ title: "مرحباً!", description: `تم تسجيل الدخول بنجاح` });
-            setTimeout(() => {
-              if (roles.includes("Admin")) {
-                setLocation("/admin/dashboard");
-              } else if (roles.includes("Staff")) {
-                setLocation("/staff/dashboard");
-              } else if (roles.includes("Donor")) {
-                setLocation("/donor/dashboard");
-              } else {
-                setLocation("/");
-              }
-            }, 100);
+            let dest = "/";
+            if (roles.includes("Admin")) dest = "/admin/dashboard";
+            else if (roles.includes("Staff")) dest = "/staff/dashboard";
+            else if (roles.includes("Donor")) dest = "/donor/dashboard";
+            window.location.href = dest;
           } else {
             toast({
               title: "خطأ في تسجيل الدخول",
