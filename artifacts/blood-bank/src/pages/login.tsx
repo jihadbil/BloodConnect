@@ -26,15 +26,18 @@ export default function Login() {
           if (res.isSuccess && res.data?.token && res.data?.user) {
             login(res.data.token, res.data.user);
             const roles = res.data.user.roles || [];
-            if (roles.includes("Admin")) {
-              setLocation("/admin/dashboard");
-            } else if (roles.includes("Staff")) {
-              setLocation("/staff/dashboard");
-            } else if (roles.includes("Donor")) {
-              setLocation("/donor/dashboard");
-            } else {
-              setLocation("/");
-            }
+            toast({ title: "مرحباً!", description: `تم تسجيل الدخول بنجاح` });
+            setTimeout(() => {
+              if (roles.includes("Admin")) {
+                setLocation("/admin/dashboard");
+              } else if (roles.includes("Staff")) {
+                setLocation("/staff/dashboard");
+              } else if (roles.includes("Donor")) {
+                setLocation("/donor/dashboard");
+              } else {
+                setLocation("/");
+              }
+            }, 100);
           } else {
             toast({
               title: "خطأ في تسجيل الدخول",
@@ -43,10 +46,12 @@ export default function Login() {
             });
           }
         },
-        onError: () => {
+        onError: (err: unknown) => {
+          const message =
+            err instanceof Error ? err.message : "حدث خطأ أثناء الاتصال بالخادم";
           toast({
-            title: "خطأ",
-            description: "حدث خطأ أثناء الاتصال بالخادم",
+            title: "خطأ في الاتصال",
+            description: message,
             variant: "destructive"
           });
         }
