@@ -2,21 +2,39 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 1.0.0
+  description: Blood Bank API - Gharyan Central Hospital
 servers:
   - url: /api
-    description: Base API path
+    description: External Blood Bank API
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: bloodRequests
+    description: Blood Requests
+  - name: donations
+    description: Donations
+  - name: donors
+    description: Donors
+  - name: patients
+    description: Patients
+  - name: inventory
+    description: Blood Inventory
+  - name: donorResponses
+    description: Donor Responses
+  - name: statistics
+    description: Statistics and Reports
+  - name: users
+    description: User Management
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +42,979 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /Auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLoginResult"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /Auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /Auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  # BLOOD REQUESTS
+  /BloodRequests:
+    get:
+      operationId: getBloodRequests
+      tags: [bloodRequests]
+      parameters:
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+        - name: SearchTerm
+          in: query
+          schema:
+            type: string
+        - name: SortBy
+          in: query
+          schema:
+            type: string
+        - name: SortDescending
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestPagedResponse"
+    post:
+      operationId: createBloodRequest
+      tags: [bloodRequests]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BloodRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestResponse"
+
+  /BloodRequests/{id}:
+    get:
+      operationId: getBloodRequest
+      tags: [bloodRequests]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestResponse"
+
+  /BloodRequests/pending:
+    get:
+      operationId: getPendingBloodRequests
+      tags: [bloodRequests]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestListResponse"
+
+  /BloodRequests/urgent:
+    get:
+      operationId: getUrgentBloodRequests
+      tags: [bloodRequests]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestListResponse"
+
+  /BloodRequests/{id}/status:
+    put:
+      operationId: updateBloodRequestStatus
+      tags: [bloodRequests]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBloodRequestStatusInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequestResponse"
+
+  /BloodRequests/{id}/fulfill:
+    post:
+      operationId: fulfillBloodRequest
+      tags: [bloodRequests]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FulfillRequestInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  /BloodRequests/{id}/cancel:
+    post:
+      operationId: cancelBloodRequest
+      tags: [bloodRequests]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelRequestInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  /BloodRequests/{id}/responses:
+    get:
+      operationId: getBloodRequestResponses
+      tags: [bloodRequests]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseListResponse"
+
+  # DONATIONS
+  /Donations:
+    get:
+      operationId: getDonations
+      tags: [donations]
+      parameters:
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+        - name: SearchTerm
+          in: query
+          schema:
+            type: string
+        - name: SortBy
+          in: query
+          schema:
+            type: string
+        - name: SortDescending
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationPagedResponse"
+    post:
+      operationId: createDonation
+      tags: [donations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationResponse"
+
+  /Donations/{id}:
+    get:
+      operationId: getDonation
+      tags: [donations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationResponse"
+    put:
+      operationId: updateDonation
+      tags: [donations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonationUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationResponse"
+    delete:
+      operationId: deleteDonation
+      tags: [donations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  /Donations/donor/{donorId}:
+    get:
+      operationId: getDonationsByDonor
+      tags: [donations]
+      parameters:
+        - name: donorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationListResponse"
+
+  /Donations/recent:
+    get:
+      operationId: getRecentDonations
+      tags: [donations]
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonationListResponse"
+
+  # DONOR RESPONSES
+  /DonorResponses:
+    post:
+      operationId: createDonorResponse
+      tags: [donorResponses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonorResponseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseItemResponse"
+
+  /DonorResponses/{id}:
+    get:
+      operationId: getDonorResponse
+      tags: [donorResponses]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseItemResponse"
+
+  /DonorResponses/request/{requestId}:
+    get:
+      operationId: getDonorResponsesByRequest
+      tags: [donorResponses]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseListResponse"
+
+  /DonorResponses/donor/{donorId}:
+    get:
+      operationId: getDonorResponsesByDonor
+      tags: [donorResponses]
+      parameters:
+        - name: donorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseListResponse"
+
+  /DonorResponses/{id}/status:
+    put:
+      operationId: updateDonorResponseStatus
+      tags: [donorResponses]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResponseStatusInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponseItemResponse"
+
+  # DONORS
+  /Donors:
+    get:
+      operationId: getDonors
+      tags: [donors]
+      parameters:
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+        - name: SearchTerm
+          in: query
+          schema:
+            type: string
+        - name: SortBy
+          in: query
+          schema:
+            type: string
+        - name: SortDescending
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorPagedResponse"
+    post:
+      operationId: createDonor
+      tags: [donors]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonorInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponse"
+
+  /Donors/{id}:
+    get:
+      operationId: getDonor
+      tags: [donors]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponse"
+    put:
+      operationId: updateDonor
+      tags: [donors]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DonorUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponse"
+    delete:
+      operationId: deleteDonor
+      tags: [donors]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  /Donors/{id}/approve:
+    post:
+      operationId: approveDonor
+      tags: [donors]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveDonorInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorResponse"
+
+  /Donors/by-status:
+    get:
+      operationId: getDonorsByStatus
+      tags: [donors]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: integer
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DonorPagedResponse"
+
+  # PATIENTS
+  /Patients:
+    get:
+      operationId: getPatients
+      tags: [patients]
+      parameters:
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+        - name: SearchTerm
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientPagedResponse"
+    post:
+      operationId: createPatient
+      tags: [patients]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponse"
+
+  /Patients/{id}:
+    get:
+      operationId: getPatient
+      tags: [patients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponse"
+    put:
+      operationId: updatePatient
+      tags: [patients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponse"
+    delete:
+      operationId: deletePatient
+      tags: [patients]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  # INVENTORY
+  /Inventory:
+    get:
+      operationId: getInventory
+      tags: [inventory]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryListResponse"
+
+  /Inventory/low-stock:
+    get:
+      operationId: getLowStockInventory
+      tags: [inventory]
+      parameters:
+        - name: threshold
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryListResponse"
+
+  /Inventory/expiring:
+    get:
+      operationId: getExpiringInventory
+      tags: [inventory]
+      parameters:
+        - name: daysThreshold
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemListResponse"
+
+  /Inventory/blood-type/{bloodTypeId}:
+    get:
+      operationId: getInventoryByBloodType
+      tags: [inventory]
+      parameters:
+        - name: bloodTypeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+    put:
+      operationId: updateInventoryQuantity
+      tags: [inventory]
+      parameters:
+        - name: bloodTypeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuantityInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  # STATISTICS
+  /Statistics/dashboard-summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [statistics]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummaryResponse"
+
+  /Statistics/donors/blood-type-distribution:
+    get:
+      operationId: getDonorBloodTypeDistribution
+      tags: [statistics]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodTypeStatisticsResponse"
+
+  /Statistics/donations/monthly:
+    get:
+      operationId: getMonthlyDonations
+      tags: [statistics]
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyDonationsResponse"
+
+  /Statistics/requests/by-urgency:
+    get:
+      operationId: getRequestsByUrgency
+      tags: [statistics]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestsByUrgencyResponse"
+
+  /Statistics/donors/active-vs-inactive:
+    get:
+      operationId: getActiveVsInactiveDonors
+      tags: [statistics]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveVsInactiveResponse"
+
+  # USERS
+  /Users:
+    get:
+      operationId: getUsers
+      tags: [users]
+      parameters:
+        - name: PageNumber
+          in: query
+          schema:
+            type: integer
+        - name: PageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPagedResponse"
+
+  /Users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /Users/assign-role:
+    post:
+      operationId: assignRole
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRoleInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
+  /Users/{id}/toggle-status:
+    post:
+      operationId: toggleUserStatus
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooleanResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +1025,889 @@ components:
       required:
         - status
 
+    # Generic wrappers
+    BooleanResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: boolean
+        message:
+          type: ["string", "null"]
+        errors:
+          type: ["array", "null"]
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        message:
+          type: ["string", "null"]
+        errors:
+          type: ["array", "null"]
+          items:
+            type: string
+
+    # AUTH
+    LoginInput:
+      type: object
+      required: [userName, password]
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+
+    RegisterInput:
+      type: object
+      required: [fullName, userName, email, password, phoneNumber]
+      properties:
+        fullName:
+          type: string
+        userName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phoneNumber:
+          type: string
+        role:
+          type: ["string", "null"]
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userName:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        fullName:
+          type: ["string", "null"]
+        phoneNumber:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            type: string
+        donorID:
+          type: ["integer", "null"]
+        donorName:
+          type: ["string", "null"]
+
+    AuthTokenData:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: "#/components/schemas/UserDto"
+
+    AuthLoginResult:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/AuthTokenData"
+        message:
+          type: ["string", "null"]
+
+    UpdateBloodRequestStatusInput:
+      type: object
+      properties:
+        status:
+          type: integer
+        notes:
+          type: ["string", "null"]
+
+    UserResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/UserDto"
+        message:
+          type: ["string", "null"]
+
+    UserPagedResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/UserPagedData"
+
+    UserPagedData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserDto"
+        totalCount:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    AssignRoleInput:
+      type: object
+      required: [userId, roleName]
+      properties:
+        userId:
+          type: string
+        roleName:
+          type: string
+
+    # BLOOD REQUEST
+    BloodRequestDto:
+      type: object
+      properties:
+        requestID:
+          type: integer
+        patientID:
+          type: integer
+        patientName:
+          type: string
+        bloodTypeID:
+          type: integer
+        bloodTypeName:
+          type: string
+        quantityNeeded:
+          type: integer
+        urgencyLevel:
+          type: integer
+        requestDate:
+          type: string
+          format: date-time
+        requiredDate:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        quantityFulfilled:
+          type: integer
+        quantityRemaining:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    BloodRequestInput:
+      type: object
+      required: [patientID, bloodTypeID, quantityNeeded, urgencyLevel, requiredDate]
+      properties:
+        patientID:
+          type: integer
+        bloodTypeID:
+          type: integer
+        quantityNeeded:
+          type: integer
+        urgencyLevel:
+          type: integer
+        requiredDate:
+          type: string
+          format: date-time
+        notes:
+          type: ["string", "null"]
+
+    FulfillRequestInput:
+      type: object
+      properties:
+        notes:
+          type: ["string", "null"]
+        donorIds:
+          type: array
+          items:
+            type: integer
+
+    CancelRequestInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    BloodRequestResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/BloodRequestDto"
+        message:
+          type: ["string", "null"]
+
+    BloodRequestListResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodRequestDto"
+        message:
+          type: ["string", "null"]
+
+    BloodRequestPagedData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodRequestDto"
+        totalCount:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    BloodRequestPagedResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/BloodRequestPagedData"
+        message:
+          type: ["string", "null"]
+
+    # DONATIONS
+    DonationDto:
+      type: object
+      properties:
+        donationID:
+          type: integer
+        donorID:
+          type: integer
+        donorName:
+          type: string
+        bloodTypeID:
+          type: integer
+        bloodTypeName:
+          type: string
+        donationDate:
+          type: string
+          format: date-time
+        quantity:
+          type: integer
+        testResult:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        isAddedToInventory:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    DonationInput:
+      type: object
+      required: [donorID, bloodTypeID, donationDate, quantity]
+      properties:
+        donorID:
+          type: integer
+        bloodTypeID:
+          type: integer
+        donationDate:
+          type: string
+          format: date-time
+        quantity:
+          type: integer
+        notes:
+          type: ["string", "null"]
+
+    DonationUpdate:
+      type: object
+      properties:
+        quantity:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        testResult:
+          type: ["integer", "null"]
+
+    DonationResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DonationDto"
+        message:
+          type: ["string", "null"]
+
+    DonationListResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DonationDto"
+        message:
+          type: ["string", "null"]
+
+    DonationPagedData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DonationDto"
+        totalCount:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    DonationPagedResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DonationPagedData"
+        message:
+          type: ["string", "null"]
+
+    # DONOR RESPONSES
+    DonorResponseDto:
+      type: object
+      properties:
+        responseID:
+          type: integer
+        donorID:
+          type: integer
+        donorName:
+          type: string
+        requestID:
+          type: integer
+        status:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        respondedAt:
+          type: string
+          format: date-time
+        bloodTypeName:
+          type: ["string", "null"]
+
+    DonorResponseInput:
+      type: object
+      required: [donorID, requestID]
+      properties:
+        donorID:
+          type: integer
+        requestID:
+          type: integer
+        notes:
+          type: ["string", "null"]
+
+    UpdateResponseStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: integer
+        notes:
+          type: ["string", "null"]
+
+    DonorResponseItemResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DonorResponseDto"
+        message:
+          type: ["string", "null"]
+
+    DonorResponseListResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DonorResponseDto"
+        message:
+          type: ["string", "null"]
+
+    # DONORS
+    DonorDto:
+      type: object
+      properties:
+        donorID:
+          type: integer
+        fullName:
+          type: string
+        nationalID:
+          type: string
+        gender:
+          type: integer
+        dateOfBirth:
+          type: string
+          format: date-time
+        phone:
+          type: string
+        bloodTypeID:
+          type: integer
+        bloodTypeName:
+          type: string
+        city:
+          type: string
+        approvalStatus:
+          type: integer
+        totalDonations:
+          type: integer
+        lastDonationDate:
+          type: ["string", "null"]
+          format: date-time
+        isAvailable:
+          type: boolean
+        userId:
+          type: ["string", "null"]
+
+    DonorInput:
+      type: object
+      required: [fullName, nationalID, gender, dateOfBirth, phone, bloodTypeID, city]
+      properties:
+        fullName:
+          type: string
+        nationalID:
+          type: string
+        gender:
+          type: integer
+        dateOfBirth:
+          type: string
+          format: date-time
+        phone:
+          type: string
+        bloodTypeID:
+          type: integer
+        city:
+          type: string
+        userId:
+          type: ["string", "null"]
+        approvalStatus:
+          type: integer
+
+    DonorUpdate:
+      type: object
+      properties:
+        fullName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        isAvailable:
+          type: ["boolean", "null"]
+
+    ApproveDonorInput:
+      type: object
+      required: [newStatus]
+      properties:
+        newStatus:
+          type: integer
+        rejectionReason:
+          type: ["string", "null"]
+
+    DonorResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DonorDto"
+        message:
+          type: ["string", "null"]
+
+    DonorPagedData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DonorDto"
+        totalCount:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    DonorPagedResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DonorPagedData"
+        message:
+          type: ["string", "null"]
+
+    # PATIENTS
+    PatientDto:
+      type: object
+      properties:
+        patientID:
+          type: integer
+        fullName:
+          type: string
+        nationalID:
+          type: string
+        gender:
+          type: integer
+        dateOfBirth:
+          type: string
+          format: date-time
+        phone:
+          type: string
+        city:
+          type: string
+        bloodTypeID:
+          type: integer
+        bloodTypeName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PatientInput:
+      type: object
+      required: [fullName, nationalID, gender, dateOfBirth, phone, city, bloodTypeID]
+      properties:
+        fullName:
+          type: string
+        nationalID:
+          type: string
+        gender:
+          type: integer
+        dateOfBirth:
+          type: string
+          format: date-time
+        phone:
+          type: string
+        city:
+          type: string
+        bloodTypeID:
+          type: integer
+
+    PatientUpdate:
+      type: object
+      properties:
+        fullName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+
+    PatientResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/PatientDto"
+        message:
+          type: ["string", "null"]
+
+    PatientPagedData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientDto"
+        totalCount:
+          type: integer
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    PatientPagedResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/PatientPagedData"
+        message:
+          type: ["string", "null"]
+
+    # INVENTORY
+    BloodInventoryDto:
+      type: object
+      properties:
+        inventoryID:
+          type: integer
+        bloodTypeID:
+          type: integer
+        bloodTypeName:
+          type: string
+        quantityAvailable:
+          type: integer
+        quantityReserved:
+          type: integer
+        lastUpdated:
+          type: string
+          format: date-time
+        itemsCount:
+          type: integer
+
+    BloodInventoryItemDto:
+      type: object
+      properties:
+        inventoryItemID:
+          type: integer
+        inventoryID:
+          type: integer
+        donationID:
+          type: integer
+        donorName:
+          type: string
+        bloodTypeName:
+          type: string
+        quantity:
+          type: integer
+        expiryDate:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        isUsed:
+          type: boolean
+        addedAt:
+          type: string
+          format: date-time
+        isExpired:
+          type: boolean
+
+    UpdateQuantityInput:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+        operation:
+          type: string
+
+    InventoryListResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodInventoryDto"
+        message:
+          type: ["string", "null"]
+
+    InventoryItemResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/BloodInventoryDto"
+        message:
+          type: ["string", "null"]
+
+    InventoryItemListResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodInventoryItemDto"
+        message:
+          type: ["string", "null"]
+
+    # STATISTICS
+    InventoryStatusDto:
+      type: object
+      properties:
+        bloodType:
+          type: string
+        quantityAvailable:
+          type: integer
+        isLowStock:
+          type: boolean
+
+    DashboardSummaryDto:
+      type: object
+      properties:
+        activeDonorsCount:
+          type: integer
+        inactiveDonorsCount:
+          type: integer
+        donationsThisMonth:
+          type: integer
+        donationsThisYear:
+          type: integer
+        pendingRequestsCount:
+          type: integer
+        fulfilledRequestsThisMonth:
+          type: integer
+        emergencyRequestsCount:
+          type: integer
+        inventoryByBloodType:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryStatusDto"
+        expiringUnitsCount:
+          type: integer
+
+    DashboardSummaryResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DashboardSummaryDto"
+        message:
+          type: ["string", "null"]
+
+    BloodTypeStatDto:
+      type: object
+      properties:
+        bloodType:
+          type: string
+        count:
+          type: integer
+
+    BloodTypeStatisticsResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodTypeStatDto"
+        message:
+          type: ["string", "null"]
+
+    MonthlyDonationDto:
+      type: object
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        count:
+          type: integer
+        totalQuantity:
+          type: integer
+
+    MonthlyDonationsResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyDonationDto"
+        message:
+          type: ["string", "null"]
+
+    RequestsByUrgencyDto:
+      type: object
+      properties:
+        urgencyLevel:
+          type: string
+        count:
+          type: integer
+
+    RequestsByUrgencyResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestsByUrgencyDto"
+        message:
+          type: ["string", "null"]
+
+    ActiveVsInactiveDto:
+      type: object
+      properties:
+        activeCount:
+          type: integer
+        inactiveCount:
+          type: integer
+        totalCount:
+          type: integer
+        activePercentage:
+          type: number
+        inactivePercentage:
+          type: number
+
+    ActiveVsInactiveResponse:
+      type: object
+      properties:
+        isSuccess:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/ActiveVsInactiveDto"
+        message:
+          type: ["string", "null"]

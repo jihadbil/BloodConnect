@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "بنك الدم - مستشفى غريان المركزي"
+version = "1.0.0"
+id = "artifacts/blood-bank"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22377
+
+[services.development]
+run = "pnpm --filter @workspace/blood-bank run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/blood-bank", "run", "build" ]
+publicDir = "artifacts/blood-bank/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22377"
+BASE_PATH = "/"

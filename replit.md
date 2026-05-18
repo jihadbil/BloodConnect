@@ -1,10 +1,11 @@
-# [Project name]
+# BloodConnect — بنك الدم - مستشفى غريان المركزي
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+نظام إدارة بنك الدم لمستشفى غريان المركزي — يربط المتبرعين بالمرضى ويدير المخزون والتبرعات والطلبات.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/blood-bank run dev` — run the frontend (port 22377)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,6 +15,7 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite + Tailwind CSS + shadcn/ui + Wouter + React Query
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
@@ -22,23 +24,39 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for all API contracts)
+- `lib/api-client-react/src/generated/` — generated React Query hooks
+- `lib/api-zod/src/generated/` — generated Zod validation schemas
+- `lib/db/src/schema/` — Drizzle ORM database schema
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/blood-bank/src/pages/` — React pages
+- `attached_assets/` — static images and assets
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first API: OpenAPI spec gates codegen, which gates the frontend — spec is the single source of truth
+- Role-based access: Donor / Staff / Admin roles with protected routes
+- JWT auth via `Authorization: Bearer` header (stored in localStorage)
+- Arabic-first UI with RTL layout support
+- Monorepo: shared `@workspace/api-client-react` used by frontend for typed API calls
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **متبرعون (Donors)**: تسجيل، لوحة تحكم، استعراض طلبات الدم، الردود على النداءات، الملف الشخصي
+- **موظفون (Staff)**: إدارة المتبرعين والمرضى وطلبات الدم والتبرعات والمخزون
+- **مسؤولون (Admins)**: كل صلاحيات الموظفين + إدارة المستخدمين وتعيين الأدوار
+- **عام**: الصفحة الرئيسية، عرض طلبات الدم العامة، تسجيل حساب جديد
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- المشروع مستورد من GitHub: https://github.com/jihadbil/BloodConnect.git
+- واجهة المستخدم باللغة العربية بالكامل
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Always run `pnpm --filter @workspace/api-spec run codegen` after changing `openapi.yaml`
+- The API server does NOT yet have route implementations — only the health endpoint works
+- DB schema in `lib/db/src/schema/index.ts` is empty and needs to be populated
 
 ## Pointers
 
